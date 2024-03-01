@@ -1,34 +1,84 @@
-import axios from 'axios'
-import React, { useEffect, useState } from 'react'
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import Movie from "./Movie";
+import { MdChevronLeft, MdChevronRight } from "react-icons/md";
+import YouTube from "react-youtube";
+import movieTrailer from "movie-trailer";
+import { notifyError } from "../Api/toast";
 
-function MovieRows({ title, fetchUrl }) {
+function MovieRows({ title, fetchUrl, RowId }) {
+  const [movies, setMovies] = useState([]);
+  const [movieTrailerUrl, setMovietrailerUrl] = useState("");
 
-    const [movies, setMovies] = useState([])
+  useEffect(() => {
+    axios.get(fetchUrl).then((response) => {
+      setMovies(response.data.results);
+    });
+  }, [fetchUrl]);
 
-    useEffect(() => {
-        axios.get(fetchUrl).then((response) => {
-            setMovies(response.data.results)
+  const opts = {
+    height: "390",
+    width: "100%",
+    playerVars: {
+      // https://developers.google.com/youtube/player_parameters
+      autoplay: 1,
+    },
+  };
+
+  const SlideLeft = () => {
+    let slider = document.getElementById("slider" + RowId);
+    slider.scrollLeft = slider.scrollLeft - 500;
+  };
+  const SlideRight = () => {
+    let slider = document.getElementById("slider" + RowId);
+    slider.scrollLeft = slider.scrollLeft + 500;
+  };
+
+  const movieClicked = (movie) => {
+    if (movieTrailerUrl) {
+      setMovietrailerUrl("");
+    } else {
+      movieTrailer(movie?.title || "")
+        .then((url) => {
+          const urlParams = new URLSearchParams(new URL(url).search);
+          setMovietrailerUrl(urlParams.get("v"));
         })
-    }, [fetchUrl])
-    console.log(movies)
+        .catch((error) => {
+          return notifyError("No internet connection");
+        });
+    }
+  };
 
-    return (
-        <div>
-            <h2 className='text-white font-bold md:text-xl p-4'>{title}</h2>
-            <div className='flex justify-center items-center relative'>
-                <div id={'slider'}>
-                    {movies.map((movie, id) => (
-                        <div className='w-[160px] sm:w-[200px] md:w-[240px] lg:w-[280px] p-2 inline-block cursor-pointer relative hover:scale-105'>
-                            <img src={`https://image.tmdb.org/t/p/w500/${movie?.poster_path}`} alt={movie?.title} className='object-cover w-[160px] sm:w-[200px] md:w-[240px] lg:w-[280px]' />
-                            <div className='absolute top-0 left-0 w-full h-full text-white opacity-0 hover:bg-black/80 hover:opacity-100'>
-                                <p className='text-white font-bold w-full h-full flex justify-center items-center text-center text-xs md:text-sm whitespace-normal'>{movie?.title}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+  return (
+    <div>
+      <h2 className="text-white font-bold md:text-xl p-4">{title}</h2>
+      <div className="flex items-center relative group">
+        <MdChevronLeft
+          onClick={SlideLeft}
+          size={40}
+          className="bg-white rounded-full absolute opacity-50 hover:opacity-100 cursor-pointer hidden group-hover:block z-10 left-0"
+        />
+        <div
+          id={"slider" + RowId}
+          className="relative w-full h-full overflow-scroll whitespace-nowrap scroll-smooth scrollbar-hide"
+        >
+          {movies.map((movie, id) => (
+            <Movie
+              key={id}
+              movie={movie}
+              movieHandler={() => movieClicked(movie)}
+            />
+          ))}
         </div>
-    )
+        <MdChevronRight
+          size={40}
+          onClick={SlideRight}
+          className="bg-white rounded-full absolute opacity-50 hover:opacity-100 cursor-pointer hidden group-hover:block z-10 right-0"
+        />
+      </div>
+      {movieTrailerUrl && <YouTube videoId={movieTrailerUrl} opts={opts} />}
+    </div>
+  );
 }
 
-export default MovieRows
+export default MovieRows;

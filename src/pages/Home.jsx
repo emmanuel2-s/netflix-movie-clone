@@ -7,11 +7,11 @@ function Home() {
     return (
         <div>
             <MainPage />
-            <MovieRows title='UpComing' fetchUrl={requests.requestUpComing} />
-            <MovieRows title='Most Popular' fetchUrl={requests.requestPopular} />
-            <MovieRows title='Trending' fetchUrl={requests.requestTrending} />
-            <MovieRows title='Top Rated' fetchUrl={requests.requestTopRated} />
-            <MovieRows title='Horror' fetchUrl={requests.requestHorror} />
+            <MovieRows RowId='1' title='UpComing' fetchUrl={requests.requestUpComing} />
+            <MovieRows RowId='2' title='Most Popular' fetchUrl={requests.requestPopular} />
+            <MovieRows RowId='3' title='Trending' fetchUrl={requests.requestTrending} />
+            <MovieRows RowId='4' title='Top Rated' fetchUrl={requests.requestTopRated} />
+            <MovieRows RowId='5' title='Horror' fetchUrl={requests.requestHorror} />
         </div>
     )
 }
