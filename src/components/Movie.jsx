@@ -9,7 +9,7 @@ function Movie({ movie, movieHandler }) {
   return (
     <div className="w-[160px] sm:w-[200px] md:w-[240px] lg:w-[280px] p-2 inline-block cursor-pointer relative hover:scale-105">
       <img
-        src={`https://image.tmdb.org/t/p/w500/${movie?.poster_path}`}
+        src={`https://image.tmdb.org/t/p/w500/${movie?.backdrop_path}`}
         alt={movie?.title || <Skeleton width={`40%`} />}
         className="object-cover h-auto block"
       />
