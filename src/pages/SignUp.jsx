@@ -1,40 +1,64 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import netflixImg from "../assets/img/netflix.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
 import { notifyError, notifySuccess } from "../Api/toast";
+import isOnline from "is-online";
+import Loader from "../components/Loader";
 
 function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  //   const handleChange = (e) => {
-  //     const { name, value } = e.target;
-  //     setText({ ...text, [name]: value });
-  //   };
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const { user, signUp } = UserAuth();
+  const [online, setOnline] = useState();
+
+  const checkOnline = async () => {
+    setTimeout(async () => {
+      setOnline(await isOnline());
+    }, 300);
+  };
+
+  useEffect(() => {
+    checkOnline();
+  }, [online]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const check = await signUp(email, password);
-      console.log(check);
-      // if (error.code === "auth/weak-password") {
-      //   notifyError("wrong password");
-      //   return;
-      // } else {
+      await signUp(email, password);
+      setEmail("");
+      setPassword("");
+      if (!online) {
+        notifyError("no internet connection!");
+        return;
+      }
       notifySuccess("Account created successfully");
-      // }
+      navigate("/");
+      setLoading(false);
     } catch (error) {
       console.log("er", error.message);
       if (error.code === "auth/weak-password") {
         notifyError("Password should be at least 6 characters");
-        return;
+        setLoading(false);
+      } else if (error.code === "auth/email-already-in-use") {
+        notifyError("email already exist!");
+        setLoading(false);
+      } else if (error.code === "auth/invalid-email") {
+        notifyError("Invalid email address");
+      } else if (
+        error.message === "ERR_NETWORK" ||
+        error.code === "auth/network-request-failed"
+      ) {
+        notifyError("Network Error");
+        setLoading(false);
       } else {
-        notifySuccess("Account created successfully");
+        notifyError("An unexpected error occurred. Please try again.");
       }
-
-      // notifyError(error.message);
     }
+    setLoading(false);
   };
 
   return (
@@ -48,7 +72,7 @@ function SignUp() {
         <div className="bg-black/60 fixed w-full h-full top-0 left-0"></div>
 
         <div className="fixed w-full px-4 py-24 z-50 overflow-auto">
-          <div className="max-w-[450px] mx-auto h-[600px] bg-black/75 text-white">
+          <div className="max-w-[450px] mx-auto h-auto bg-black/75 overflow-auto text-white">
             <div className="max-w-[350px] mx-auto py-16">
               <h1 className="text-3xl font-bold">Sign Up</h1>
               <form
@@ -75,9 +99,15 @@ function SignUp() {
                   placeholder="Password"
                   className="p-3 my-2 bg-gray-700 rounded"
                 />
-                <button className="bg-[#00df9a] py-3 mt-10 font-bold rounded">
-                  Sign Up
+                <button
+                  className="bg-[#00df9a] py-3 mt-10 font-bold rounded"
+                  disabled={loading ? true : false}
+                >
+                  {loading ? <Loader /> : "Sign Up"}
                 </button>
+                {!online && (
+                  <p className="text-red-600">No internet connection</p>
+                )}
                 <div className="flex justify-between py-4">
                   <p className="text-gray-400 flex items-center">
                     <input
@@ -91,19 +121,19 @@ function SignUp() {
                   </a>
                 </div>
               </form>
-              <div className="my-6">
-                <Link to="/signup">
-                  <p className="text-gray-400 text-lg">
-                    Already subscribed to Moviemaze?
-                    <span className="hover:underline text-white ml-1">
-                      Sign In here.
-                    </span>
-                  </p>
-                </Link>
-                <p className="text-gray-400">
+              <div className="">
+                <p className=" py-2">
+                  <span className="text-gray-500">
+                    Already subscribed to MovieMaze?
+                  </span>
+                  <Link to="/login" className="hover:underline text-white ml-1">
+                    Sign In here.
+                  </Link>
+                </p>
+                <p className="text-gray-500">
                   This page is protected by Google reCAPTCHA to ensure you're
                   not a bot.
-                  <a href="#" className="text-blue-700 ml-1 hover:underline">
+                  <a href="#" className="text-blue-500 ml-1 hover:underline">
                     learn more.
                   </a>
                 </p>

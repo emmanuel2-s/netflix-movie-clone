@@ -3,7 +3,7 @@ import React from "react";
 function Account() {
   return (
     <>
-      <div></div>
+      <div className="text-gray-600">this is account!</div>
     </>
   );
 }

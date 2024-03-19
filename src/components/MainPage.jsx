@@ -30,7 +30,17 @@ function MainPage() {
         <div className="w-full h-[550px] bg-gradient-to-r from-black absolute"></div>
         {/* stop */}
         <img
-          src={`https://image.tmdb.org/t/p/original/${movie?.backdrop_path}`}
+          src={
+            `https://image.tmdb.org/t/p/original/${movie?.backdrop_path}` || (
+              <Skeleton
+                highlightColor="#444"
+                baseColor="grey"
+                width={400}
+                height={80}
+                count={1}
+              />
+            )
+          }
           alt={movie?.title}
           className="object-cover w-full h-full"
         />
